@@ -12,3 +12,16 @@ class State(pm.Categorical):
         x_i = x[1:]            # the state you end up in
         log_p = pm.Categorical.dist(p, shape=(self.shape[0],2)).logp_sum(x_i)
         return pm.Categorical.dist(self.init_prob).logp(x[0]) + log_p
+    
+    
+class PoissionProcess(pm.Discrete):
+    def __init__(self, state=None, lambdas=None, *args, **kwargs):
+        super(PoissionProcess, self).__init__(* args, ** kwargs)
+        self.state = state
+        self.lambdas = lambdas
+        self.mode = tt.cast(1,dtype='int64')
+
+    def logp(self, x):
+        lambd = self.lambdas[self.state]
+        llike = pm.Poisson.dist(lambd).logp_sum(x)
+        return llike
